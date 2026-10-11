@@ -132,7 +132,7 @@ local preview = register("shop_magic_sphere1", {
     events = { "birth" },
     align = { axes = { "X", "Z" }, pivot = { animation = true }, position = { animation = "Parent" } },
     conditions = { { animation = "ShopPeacefulStart", player = "Parent" }, SPHERE },
-    locks = locks(false),
+    locks = locks(false, true),
     timeline = {
         [3] = sphere_effect("Start", 15, 25, { time_scale = 1.45 }),
         [4] = { sound = "snd_smallsphere_start" },
@@ -141,9 +141,22 @@ local preview = register("shop_magic_sphere1", {
     },
 })
 
+local try_on_start = register("shop_magic_try_on_sphere1_start", {
+    animation = "animations/fireball_start", templates = { family }, core_templates = { "MagicShopTryOn", "MagicMissileFly", "MagicMissile" },
+    mid_frames = 2, first_frame = 2, priority = 1, no_wall_repulsion = true, no_interpolation_frames = true, no_magic_recharge = true,
+    events = { "birth" },
+    align = { axes = { "X", "Z" }, pivot = { animation = true }, position = { animation = "Parent" } },
+    conditions = { { animation = "ShopTryOn", player = "Parent" }, SPHERE },
+    locks = locks(false, true),
+    timeline = {
+        [2] = { sphere_effect("Start", 0, 25, { time_scale = 1.45 }), { sound = "snd_smallsphere_start" } },
+        animation_end = { sphere_effect("Middle", -70, 0.5, { looped = true }), { sound = "snd_smallsphere_middle" } },
+    },
+})
+
 for _, shop in ipairs({
     { id = "shop_magic_sphere1_player", template = "ShopPeacefulStart", stage = "PeacefulStart", start = preview },
-    { id = "shop_magic_try_on_sphere1_player", template = "ShopTryOn", stage = "TryOn" },
+    { id = "shop_magic_try_on_sphere1_player", template = "ShopTryOn", stage = "TryOn", start = try_on_start },
 }) do
     register(shop.id, {
         animation = "animations/fireball_player", core_templates = { shop.template, "StanceShop", "StageStance", "Stance" },
@@ -151,22 +164,10 @@ for _, shop in ipairs({
         events = { { round_stage_start = shop.stage } }, direction = "face_enemy",
         align = { axes = { "X", "Z" }, pivot = { node = "NHeel_2" }, position = { pivot = "Me", x = -80 } },
         locks = locks(true, true),
-        timeline = { [2] = spawn(shop.start) },
+        intervals = { { name = "Block" }, { name = "Throwable" } },
+        timeline = { [3] = spawn(shop.start) },
     })
 end
-
-register("shop_magic_try_on_sphere1_start", {
-    animation = "animations/fireball_start", templates = { family }, core_templates = { "MagicShopTryOn", "MagicMissileFly", "MagicMissile" },
-    mid_frames = 2, first_frame = 2, priority = 1, no_wall_repulsion = true, no_interpolation_frames = true, no_magic_recharge = true,
-    events = { "birth" },
-    align = { axes = { "X", "Z" }, pivot = { animation = true }, position = { animation = "Parent" } },
-    conditions = { { animation = "ShopTryOn", player = "Parent" }, SPHERE },
-    locks = locks(false),
-    timeline = {
-        [2] = { sphere_effect("Start", 0, 25, { time_scale = 1.45 }), { sound = "snd_smallsphere_start" } },
-        animation_end = { sphere_effect("Middle", -70, 0.5, { looped = true }), { sound = "snd_smallsphere_middle" } },
-    },
-})
 
 register("shop_magic_try_on_sphere1_end", {
     animation = "animations/fireball_middle", templates = { family }, core_templates = { "MagicMissileEnd", "MagicMissileFly", "MagicMissile" },
@@ -178,6 +179,7 @@ register("shop_magic_try_on_sphere1_end", {
     timeline = {
         [2] = { { stop_effect = "SmallSphereMiddle" }, sphere_effect("End", 100, 0.5, { scale = 1.5, follow = false }),
             { sound = "snd_smallsphere_end" } },
+        animation_end = { { try_on_end = true }, { delete_actor = "Me" } },
     },
 })
 

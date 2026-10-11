@@ -1,5 +1,29 @@
 local sf2 = require("sf2")
 
+local runtime_shop_groups = {
+    ACT_2 = "ZONE_2",
+    ACT_3 = "ZONE_3",
+    ACT_4 = "ZONE_4",
+    ACT_5 = "ZONE_5",
+    ACT_6 = "ZONE_6",
+    ACT_7_1 = "ZONE_7",
+    ACT_7_2 = "ZONE_7_2",
+    ACT_7_3 = "ZONE_7_3",
+    INTERMISSION = "ZONE_IM",
+    GATES_OF_SHADOWS = "ZONE_6_1",
+}
+
+local function runtime_shop_group(pack_label)
+    if pack_label == "" then
+        return nil
+    end
+    local group = runtime_shop_groups[pack_label]
+    if not group then
+        error("Unknown DE shop pack label: " .. tostring(pack_label))
+    end
+    return group
+end
+
 -- Priced core equipment that the DE archive makes available in the normal shop.
 -- The generated table contains static data; no XML is read by the mod in game.
 -- Core identity stays base-owned. Prices, art, starting profiles, legacy paid
@@ -10,7 +34,7 @@ for _, row in ipairs(require("content.shop_data")) do
         item = item,
         visibility = sf2.shop.FORCE_VISIBLE,
         minimum_level = row[3],
-        required_group = row[4],
+        required_group = runtime_shop_group(row[4]),
     }
     sf2.items.set_initial_profile {
         item = item,
